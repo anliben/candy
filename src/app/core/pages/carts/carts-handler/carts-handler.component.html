@@ -1,0 +1,28 @@
+<po-page-default
+  [p-title]="cart_id == null ? 'Create Cart' : 'Update Cart'"
+  [p-actions]="actions"
+>
+  <po-dynamic-form
+    #dynamicForm
+    [p-fields]="fields"
+    (p-form)="getForm($event)"
+    [p-value]="cart_values"
+    [p-validate-on-input]="true"
+  ></po-dynamic-form>
+  <app-products-list [items]="selected_products" [show-actions]="false" ></app-products-list>
+  <po-modal
+    #modal
+    p-title="Selecionar Produto"
+    [p-click-out]="true"
+    [p-hide-close]="true"
+    p-size="xl"
+  >
+    <app-products-list
+      [items]="products"
+      [show-actions]="false"
+      [selectable]="true"
+      (onSelect)="onSelectProduct($event)"
+    ></app-products-list>
+  </po-modal>
+  <po-loading-overlay [p-screen-lock]="true" *ngIf="loading"></po-loading-overlay>
+</po-page-default>

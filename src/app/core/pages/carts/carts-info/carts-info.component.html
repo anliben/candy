@@ -1,0 +1,11 @@
+<po-page-default
+  p-title="Cart Info"
+  [p-actions]="actions"
+>
+  <po-dynamic-view
+    [p-fields]="fields"
+    [p-value]="values"
+  ></po-dynamic-view>
+
+  <app-products-list [items]="values.products" [show-actions]="false" ></app-products-list>
+</po-page-default>

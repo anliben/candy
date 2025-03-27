@@ -1,5 +1,5 @@
 <po-page-default
-  p-title="Users List"
+  p-title="Carts List"
   [p-actions]="pageActions"
 >
   <po-table
@@ -11,4 +11,14 @@
     [p-sort]="true"
     [p-actions-right]="true"
   ></po-table>
+
+  <po-modal
+    #modal
+    p-title="Product List"
+    [p-click-out]="true"
+    [p-hide-close]="true"
+    p-size="xl"
+  >
+  <app-products-list [items]="item_products" [show-actions]="false" ></app-products-list>
+  </po-modal>
 </po-page-default>

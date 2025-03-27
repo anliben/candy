@@ -1,15 +1,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PoModule } from '@po-ui/ng-components';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
+import { PoModule } from '@po-ui/ng-components';
 
 const mModules = [
   CommonModule,
   FormsModule,
   ReactiveFormsModule,
-  PoModule,
-  RouterOutlet
+  PoModule
 ]
 
 @NgModule({

@@ -1,0 +1,22 @@
+<po-page-default
+  p-title="Product Categories"
+>
+  <po-table
+    [p-columns]="columns"
+    [p-items]="items"
+    [p-actions]="actions"
+    [p-hide-table-search]="false"
+    [p-striped]="true"
+    [p-sort]="true"
+    [p-actions-right]="true"
+  ></po-table>
+  <po-modal
+    #modal
+    [p-title]="getModalTitle()"
+    [p-click-out]="true"
+    [p-hide-close]="true"
+    p-size="xl"
+  >
+    <app-products-list [category]="selected_category" [show-actions]="false" ></app-products-list>
+  </po-modal>
+</po-page-default>

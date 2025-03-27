@@ -1,6 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
-import { PoDynamicFormComponent, PoDynamicFormField } from '@po-ui/ng-components';
+import { BaseComponente } from '../../../shared/components/base/base.component';
+import { NgForm, Validators } from '@angular/forms';
+import { Status } from '../../../shared/enum/status.enum';
+import { Role } from '../../../shared/enum/role.enum';
+import { User } from '../../../shared/interfaces/users.interface';
+import { PoDynamicFormFieldChanged, PoDynamicFormValidation } from '@po-ui/ng-components';
+import Utils from '../../../shared/utils/utils';
 
 interface CreateUser {
   email: string;
@@ -15,10 +21,10 @@ interface CreateUser {
     SharedModule
   ]
 })
-export class UsersHandlerComponent implements OnInit {
-  @ViewChild('dynamicForm', { static: true }) dynamicForm!: PoDynamicFormComponent;
+export class UsersHandlerComponent extends BaseComponente implements OnInit {
+  dynamicForm!: NgForm;
   user_id: number | null = null;
-  fields: PoDynamicFormField[] = [
+  fields = [
     {
       property: 'email',
       label: 'Email',
@@ -101,6 +107,24 @@ export class UsersHandlerComponent implements OnInit {
       type: 'text'
     },
     {
+      property: 'lat',
+      label: 'Lat',
+      required: true,
+      gridColumns: 4,
+      showRequired: true,
+      type: 'text',
+      visible: false
+    },
+    {
+      property: 'long',
+      label: 'long',
+      required: true,
+      gridColumns: 4,
+      showRequired: true,
+      type: 'text',
+      visible: false
+    },
+    {
       property: 'status',
       label: 'Status',
       required: true,
@@ -143,19 +167,95 @@ export class UsersHandlerComponent implements OnInit {
     email: ''
   }
 
-  constructor() { }
-
   ngOnInit() {
+    this.user_id = this.route.snapshot.params['id'];
     if (this.user_id) {
       this.loadUser();
       this.configureEditing();
     }
   }
 
+  getForm(form: NgForm) {
+    this.dynamicForm = form;
+  }
+
+  save() {
+    console.log(this.dynamicForm.form.value)
+
+    const user = this.mapToUser(this.dynamicForm.form.value)
+    console.log(user)
+  }
+
+  cancel() {
+    this.router.navigate(['/users-list'])
+  }
+
   loadUser() {
 
   }
 
+  onChangeFields(changedValue: PoDynamicFormFieldChanged): PoDynamicFormValidation {
+    const changeFields = {
+      value: {},
+      fields: []
+    };
+
+    if (changedValue.property == 'zipcode') {
+      if (Utils.validateZipCode(changedValue.value.zipcode)) {
+        this.loadAddress(changedValue.value.zipcode);
+        return changeFields;
+      }
+
+      return changeFields;
+    }
+
+    return changeFields;
+  }
+
   configureEditing() { }
 
+  loadAddress(zip_code: string) {
+    this.loading = true;
+    this.http.get(`https://brasilapi.com.br/api/cep/v1/${zip_code}`).subscribe(
+      (res: any) => {
+        this.dynamicForm.form.patchValue({
+          city: res.city,
+          street: res.street,
+          lat: res.location?.coordinates?.latitude,
+          long: res.location?.coordinates?.longitude,
+        }, { emitEvent: false });
+        this.loading = false;
+      },
+      (err: any) => {
+        this.notification.warning('invalid ZipCode');
+        this.loading = false;
+      }
+    );
+  }
+
+  mapToUser(data: any): User {
+    return {
+      id: 0,
+      email: data.email || "",
+      username: data.username || "",
+      password: data.password || "",
+      name: {
+        firstname: data.first_name || "",
+        lastname: data.last_name || ""
+      },
+      address: {
+        city: data.city || "",
+        street: data.street || "",
+        number: data.number || 0,
+        zipcode: data.zipcode || "",
+        geolocation: {
+          lat: "",
+          long: ""
+        }
+      },
+      phone: data.phone || "",
+      status: (data.status as Status) || Status.Inactive,
+      role: (data.role as Role) || Role.Customer
+    };
+  }
 }
