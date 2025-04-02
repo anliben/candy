@@ -1,10 +1,12 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { BaseComponente } from '../../../shared/components/base/base.component';
 import { PoModalComponent, PoPageAction, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
 import { Cart } from '../../../shared/interfaces/cart.interface';
 import { CartProduct } from '../../../shared/interfaces/cart-product.interface';
 import { ProductsListComponent } from "../../products/products-list/products-list.component";
+import { CartsService } from '../../../services/carts.service';
+import type { Pagination } from '../../../shared/interfaces/pagination.interface';
 
 @Component({
   selector: 'app-carts-list',
@@ -13,6 +15,7 @@ import { ProductsListComponent } from "../../products/products-list/products-lis
   styleUrl: './carts-list.component.css'
 })
 export class CartsListComponent extends BaseComponente implements OnInit {
+  cartsService: CartsService = inject(CartsService);
   @ViewChild('modal', { static: true }) modal!: PoModalComponent;
   columns: PoTableColumn[] = [
     {
@@ -54,28 +57,7 @@ export class CartsListComponent extends BaseComponente implements OnInit {
 
   item_products: CartProduct[] = [];
 
-  items: Cart[] = [
-    {
-      id: 1,
-      user_id: 123,
-      date: new Date(),
-      products: [
-        {
-          id: 101,
-          title: "Smartphone X",
-          price: 999.99,
-          quantity: 1,
-          description: '',
-          category: '',
-          image: '',
-          rating: {
-            count: 1,
-            rate: 4.5
-          }
-        },
-      ]
-    }
-  ]
+  items: Cart[] = []
   actions: PoTableAction[] = [
     {
       label: 'Ver Produtos',
@@ -103,6 +85,15 @@ export class CartsListComponent extends BaseComponente implements OnInit {
   ]
 
   ngOnInit(): void {
+    this.getCarts();
+  }
+
+  getCarts() {
+    this.cartsService.cartsList().subscribe({
+      next: (cart: Pagination<Cart>) => {
+        this.items = cart.data;
+      } 
+    })
   }
 
   openModal(row: any) {
@@ -110,6 +101,11 @@ export class CartsListComponent extends BaseComponente implements OnInit {
     this.modal.open();
   }
 
-  deleteCart(row: any) { }
-
+  deleteCart(row: any) {
+    this.cartsService.deleteCart(row.id).subscribe({
+      next: () => {
+        this.items = this.items.filter((item) => item.id !== row.id);
+      }
+    })
+  }
 }

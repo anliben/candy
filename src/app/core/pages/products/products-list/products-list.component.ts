@@ -73,7 +73,6 @@ export class ProductsListComponent extends BaseComponente implements OnInit {
   }
 
   getProducts() {
-    console.log('this.category: ', this.category)
     if (this.category) {
       this.productsService.productListCategory(this.category).subscribe((products) => {
         this.items = products.data;

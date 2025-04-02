@@ -13,9 +13,8 @@
   <po-modal
     #modal
     p-title="Selecionar Produto"
-    [p-click-out]="true"
-    [p-hide-close]="true"
     p-size="xl"
+    (p-close)="closeModal()"
   >
     <app-products-list
       [items]="products"

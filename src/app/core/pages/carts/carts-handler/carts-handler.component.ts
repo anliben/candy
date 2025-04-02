@@ -1,10 +1,13 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { BaseComponente } from '../../../shared/components/base/base.component';
 import { NgForm } from '@angular/forms';
-import { PoDynamicFormField, PoModalComponent, PoPageAction } from '@po-ui/ng-components';
+import { PoDynamicFormField, PoModalComponent, PoPageAction, type PoDynamicFormLoad } from '@po-ui/ng-components';
 import { ProductsListComponent } from "../../products/products-list/products-list.component";
 import { CartProduct } from '../../../shared/interfaces/cart-product.interface';
+import { CartsService } from '../../../services/carts.service';
+import { Cart } from '../../../shared/interfaces/cart.interface';
+import { AppService } from '../../../../app.service';
 
 @Component({
   selector: 'app-carts-handler',
@@ -13,10 +16,13 @@ import { CartProduct } from '../../../shared/interfaces/cart-product.interface';
   styleUrl: './carts-handler.component.css'
 })
 export class CartsHandlerComponent extends BaseComponente implements OnInit {
+  cartsService: CartsService = inject(CartsService);
+  appService: AppService = inject(AppService);
   @ViewChild('modal', {static: true}) modal!: PoModalComponent;
-  cart_id: number | null = null;
+  cart_id: number = 0;
   products: CartProduct[] = [];
   selected_products: CartProduct[] = [];
+  selected_product: CartProduct | undefined;
   dynamicForm!: NgForm;
   actions: PoPageAction[] = [
     {
@@ -25,7 +31,10 @@ export class CartsHandlerComponent extends BaseComponente implements OnInit {
     },
     {
       label: 'Adicionar Produto',
-      action: () => this.openModal()
+      action: (row: any) => {
+        this.selected_product = row;
+        this.openModal()
+      }
     },
     {
       label: 'Voltar',
@@ -36,12 +45,10 @@ export class CartsHandlerComponent extends BaseComponente implements OnInit {
     {
       property: 'userId',
       label: 'User ID',
+      type: 'number',
       required: true,
       showRequired: true,
       gridColumns: 4,
-      optionsService: 'https://po-sample-api.onrender.com/v1/people',
-      fieldLabel: 'name',
-      fieldValue: 'id',
     },
     {
       property: 'date',
@@ -56,6 +63,17 @@ export class CartsHandlerComponent extends BaseComponente implements OnInit {
 
   ngOnInit(): void {
     this.cart_id = this.route.snapshot.params['id'];
+    if (this.cart_id) {
+      this.getCart();
+    }
+  }
+  
+  getCart() {
+    this.cartsService.cartsListOne(this.cart_id).subscribe({
+      next: (cart: Cart) => {
+        this.cart_values = cart;
+      }
+    })
   }
 
   getForm(form: NgForm) {
@@ -64,6 +82,10 @@ export class CartsHandlerComponent extends BaseComponente implements OnInit {
 
   openModal() {
     this.modal.open();
+  }
+
+  closeModal() {
+    this.selected_product = undefined;
   }
 
   save() {
@@ -77,10 +99,4 @@ export class CartsHandlerComponent extends BaseComponente implements OnInit {
   cancel() {
     this.router.navigate(['/carts-list'])
   }
-
-  loadCart() {
-
-  }
-
-  configureEditing() { }
 }
