@@ -4,6 +4,7 @@ import { AppService } from '../../app.service';
 import { Observable, take } from 'rxjs';
 import { Pagination } from '../shared/interfaces/pagination.interface';
 import type { Cart } from '../shared/interfaces/cart.interface';
+import { GetAllCartsQuery } from '../shared/interfaces/carts-query.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -17,8 +18,13 @@ export class CartsService {
     return this.http.post<Cart>(`${this.endpoint}/carts`, cart).pipe(take(1));
   }
 
-  cartsList(): Observable<Pagination<Cart>> {
-    return this.http.get<Pagination<Cart>>(`${this.endpoint}/carts`).pipe(take(1))
+  cartsList(query: GetAllCartsQuery): Observable<Pagination<Cart>> {
+    return this.http.get<Pagination<Cart>>(`${this.endpoint}/carts`, {
+      params: {
+        _page: query._page,
+        _size: query._size,
+      }
+    }).pipe(take(1))
   }
 
   cartsUpdate(id: number, cart: Cart): Observable<Cart> {

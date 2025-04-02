@@ -6,17 +6,20 @@ import { Cart } from '../../../shared/interfaces/cart.interface';
 import { CartProduct } from '../../../shared/interfaces/cart-product.interface';
 import { ProductsListComponent } from "../../products/products-list/products-list.component";
 import { CartsService } from '../../../services/carts.service';
-import type { Pagination } from '../../../shared/interfaces/pagination.interface';
+import { Pagination } from '../../../shared/interfaces/pagination.interface';
+import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 
 @Component({
   selector: 'app-carts-list',
-  imports: [SharedModule, ProductsListComponent],
+  imports: [SharedModule, ProductsListComponent, MatPaginatorModule],
   templateUrl: './carts-list.component.html',
   styleUrl: './carts-list.component.css'
 })
 export class CartsListComponent extends BaseComponente implements OnInit {
-  cartsService: CartsService = inject(CartsService);
   @ViewChild('modal', { static: true }) modal!: PoModalComponent;
+  cartsService: CartsService = inject(CartsService);
+
+  _page: number = 0;
   columns: PoTableColumn[] = [
     {
       property: 'id',
@@ -89,10 +92,13 @@ export class CartsListComponent extends BaseComponente implements OnInit {
   }
 
   getCarts() {
-    this.cartsService.cartsList().subscribe({
+    this.cartsService.cartsList({
+      _page: this._page,
+      _size: 10
+    }).subscribe({
       next: (cart: Pagination<Cart>) => {
         this.items = cart.data;
-      } 
+      }
     })
   }
 
