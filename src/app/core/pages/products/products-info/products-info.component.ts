@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { BaseComponente } from '../../../shared/components/base/base.component';
 import { PoDynamicViewField, PoPageAction } from '@po-ui/ng-components';
+import { ProductsService } from '../../../services/produtos.service';
 
 @Component({
   selector: 'app-products-info',
@@ -10,6 +11,7 @@ import { PoDynamicViewField, PoPageAction } from '@po-ui/ng-components';
   styleUrl: './products-info.component.css'
 })
 export class ProductsInfoComponent extends BaseComponente implements OnInit {
+  productsService: ProductsService = inject(ProductsService);
   fields: PoDynamicViewField[] = [
     {
       property: 'id',
@@ -52,5 +54,9 @@ export class ProductsInfoComponent extends BaseComponente implements OnInit {
   ]
 
   ngOnInit(): void {
+    const product_id = this.route.snapshot.params['id'];
+    this.productsService.productListOne(product_id).subscribe((product: any) => {
+      this.user_info = product;
+    })
   }
 }

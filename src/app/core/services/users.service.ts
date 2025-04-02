@@ -1,0 +1,35 @@
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { AppService } from '../../app.service';
+import { Observable, take } from 'rxjs';
+import { User } from '../shared/interfaces/users.interface';
+import { Pagination } from '../shared/interfaces/pagination.interface';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UsersService {
+  private readonly http: HttpClient = inject(HttpClient);
+  private readonly appService: AppService = inject(AppService);
+  private readonly endpoint: string = `${this.appService.apiUrl}`;
+
+  userCreate(user: User): Observable<User> {
+    return this.http.post<User>(`${this.endpoint}/users`, user);
+  }
+
+  userList(): Observable<Pagination<User>> {
+    return this.http.get<Pagination<User>>(`${this.endpoint}/users`).pipe(take(1));
+  }
+
+  userUpdate(id: number, user: User): Observable<User> {
+    return this.http.put<User>(`${this.endpoint}/users/${id}`, user).pipe(take(1));
+  }
+
+  userListOne(id: number): Observable<User> {
+    return this.http.get<User>(`${this.endpoint}/users/${id}`).pipe(take(1));
+  }
+
+  deleteUser(id: number): Observable<User> {
+    return this.http.delete<User>(`${this.endpoint}/users/${id}`).pipe(take(1));
+  }
+}

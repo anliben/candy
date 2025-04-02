@@ -13,10 +13,9 @@
   <po-modal
     #modal
     [p-title]="getModalTitle()"
-    [p-click-out]="true"
-    [p-hide-close]="true"
     p-size="xl"
+    (p-close)="closeModal()"
   >
-    <app-products-list [category]="selected_category" [show-actions]="false" ></app-products-list>
+    <app-products-list *ngIf="modal_closed" [category]="selected_category" [show-actions]="false" ></app-products-list>
   </po-modal>
 </po-page-default>

@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { PoPageAction, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
 import { User } from '../../../shared/interfaces/users.interface';
 import { Role } from '../../../shared/enum/role.enum';
 import { Status } from '../../../shared/enum/status.enum';
 import { BaseComponente } from '../../../shared/components/base/base.component';
+import { HttpClient } from '@angular/common/http';
+import { UsersService } from '../../../services/users.service';
 
 @Component({
   selector: 'app-users-list',
@@ -16,6 +18,7 @@ import { BaseComponente } from '../../../shared/components/base/base.component';
   ]
 })
 export class UsersListComponent extends BaseComponente implements OnInit {
+  usersService: UsersService = inject(UsersService);
 
   columns: PoTableColumn[] = [
     {
@@ -68,31 +71,7 @@ export class UsersListComponent extends BaseComponente implements OnInit {
     }
   ]
 
-  items: User[] = [
-    {
-      id: 1,
-      address: {
-        city: 'city',
-        geolocation: {
-          lat: 'm',
-          long: '',
-        },
-        number: 1,
-        street: 'street',
-        zipcode: '23'
-      },
-      email: 'email@gmail.com',
-      name: {
-        firstname: 'joao',
-        lastname: 'victor'
-      },
-      password: 'password',
-      phone: '214',
-      role: Role.Admin,
-      status: Status.Active,
-      username: 'anliben'
-    }
-  ];
+  items: User[] = [];
 
   actions: PoTableAction[] = [
     {
@@ -117,7 +96,22 @@ export class UsersListComponent extends BaseComponente implements OnInit {
   ]
 
   ngOnInit() {
+    this.loadUsers();
   }
 
-  deleteUser(row: any) {}
+  loadUsers() {
+    this.usersService.userList().subscribe({
+      next: (users: any) => {
+        this.items = users.data;
+      }
+    })
+  }
+
+  deleteUser(row: any) {
+    this.usersService.deleteUser(row.id).subscribe({
+      next: () => {
+        this.items = this.items.filter(user => user.id !== row.id);
+      }
+    })
+  }
 }

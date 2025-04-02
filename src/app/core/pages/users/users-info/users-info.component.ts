@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { PoDynamicViewField, PoPageAction } from '@po-ui/ng-components';
 import { BaseComponente } from '../../../shared/components/base/base.component';
+import { UsersService } from '../../../services/users.service';
 
 @Component({
   selector: 'app-users-info',
@@ -12,6 +13,7 @@ import { BaseComponente } from '../../../shared/components/base/base.component';
   styleUrl: './users-info.component.css'
 })
 export class UsersInfoComponent extends BaseComponente implements OnInit {
+  usersService: UsersService = inject(UsersService);
   fields: PoDynamicViewField[] = [
     {
       property: 'id',
@@ -72,5 +74,10 @@ export class UsersInfoComponent extends BaseComponente implements OnInit {
     }
   ]
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    const id = this.route.snapshot.params['id']
+    this.usersService.userListOne(id).subscribe((user: any) => {
+      this.user_info = user;
+    })
+  }
 }

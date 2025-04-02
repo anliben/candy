@@ -1,8 +1,9 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { BaseComponente } from '../../../shared/components/base/base.component';
 import { PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
 import { ProductsListComponent } from "../products-list/products-list.component";
+import { ProductsService } from '../../../services/produtos.service';
 
 @Component({
   selector: 'app-products-categories',
@@ -11,24 +12,18 @@ import { ProductsListComponent } from "../products-list/products-list.component"
   styleUrl: './products-categories.component.css'
 })
 export class ProductsCategoriesComponent extends BaseComponente implements OnInit {
-  @ViewChild('modal', {static: true}) modal!: PoModalComponent;
+  productsService: ProductsService = inject(ProductsService);
+  @ViewChild('modal', { static: true }) modal!: PoModalComponent;
   selected_category: string = '';
   columns: PoTableColumn[] = [
     {
       property: 'name'
     }
   ]
-  items: { name: string }[] = [
-    {
-      name: 'Eletrônicos'
-    },
-    {
-      name: 'Roupas'
-    },
-    {
-      name: 'Acessórios'
-    },
-  ]
+  modal_closed: boolean = false;
+
+  items: { name: string }[] = [];
+
   actions: PoTableAction[] = [
     {
       label: 'Ver Produtos',
@@ -37,11 +32,19 @@ export class ProductsCategoriesComponent extends BaseComponente implements OnIni
   ]
 
   ngOnInit(): void {
+    this.productsService.producCategoryList().subscribe((res) => {
+      this.items = res.map((item) => ({ name: item }));
+    })
   }
 
   openModal(row: any) {
-    this.selected_category = '';
+    this.selected_category = row.name;
+    this.modal_closed = !this.modal_closed;
     this.modal.open();
+  }
+
+  closeModal() {
+    this.modal_closed = !this.modal_closed;
   }
 
   getModalTitle() {

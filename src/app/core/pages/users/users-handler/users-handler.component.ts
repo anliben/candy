@@ -1,16 +1,13 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { BaseComponente } from '../../../shared/components/base/base.component';
-import { NgForm, Validators } from '@angular/forms';
+import { NgForm } from '@angular/forms';
 import { Status } from '../../../shared/enum/status.enum';
 import { Role } from '../../../shared/enum/role.enum';
 import { User } from '../../../shared/interfaces/users.interface';
 import { PoDynamicFormFieldChanged, PoDynamicFormValidation } from '@po-ui/ng-components';
 import Utils from '../../../shared/utils/utils';
-
-interface CreateUser {
-  email: string;
-}
+import { UsersService } from '../../../services/users.service';
 
 @Component({
   selector: 'app-users-handler',
@@ -22,8 +19,9 @@ interface CreateUser {
   ]
 })
 export class UsersHandlerComponent extends BaseComponente implements OnInit {
+  usersService: UsersService = inject(UsersService);
   dynamicForm!: NgForm;
-  user_id: number | null = null;
+  user_id: number = 0;
   fields = [
     {
       property: 'email',
@@ -163,15 +161,36 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
       ]
     }
   ]
-  user_values: CreateUser = {
-    email: ''
+
+  user_values: User = {
+    id: 0,
+    email: '',
+    username: '',
+    password: '',
+    name: {
+      firstname: '',
+      lastname: ''
+    },
+    address: {
+      city: '',
+      street: '',
+      number: 1,
+      zipcode: '',
+      geolocation: {
+        lat: '',
+        long: ''
+      }
+    },
+    phone: '',
+    role: Role.Admin,
+    status: Status.Active
   }
 
   ngOnInit() {
     this.user_id = this.route.snapshot.params['id'];
+
     if (this.user_id) {
       this.loadUser();
-      this.configureEditing();
     }
   }
 
@@ -180,10 +199,30 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
   }
 
   save() {
-    console.log(this.dynamicForm.form.value)
-
     const user = this.mapToUser(this.dynamicForm.form.value)
-    console.log(user)
+
+    if (this.user_id) {
+      this.updateUser(user);
+      return;
+    }
+
+    this.createUser(user);
+  }
+
+  updateUser(user: User) {
+    this.usersService.userUpdate(this.user_id, user).subscribe({
+      next: () => {
+        this.router.navigate(['/users-list'])
+      },
+    })
+  }
+
+  createUser(user: User) {
+    this.usersService.userCreate(user).subscribe({
+      next: () => {
+        this.router.navigate(['/users-list'])
+      },
+    })
   }
 
   cancel() {
@@ -191,7 +230,26 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
   }
 
   loadUser() {
-
+    this.usersService.userListOne(this.user_id).subscribe({
+      next: (user: any) => {
+        this.user_values = user.data;
+        this.dynamicForm.form.patchValue({
+          email: this.user_values.email,
+          username: this.user_values.username,
+          first_name: this.user_values.name.firstname,
+          last_name: this.user_values.name.lastname,
+          phone: this.user_values.phone,
+          zipcode: this.user_values.address.zipcode,
+          street: this.user_values.address.street,
+          number: this.user_values.address.number,
+          city: this.user_values.address.city,
+          lat: this.user_values.address.geolocation.lat,
+          long: this.user_values.address.geolocation.long,
+          status: this.user_values.status,
+          role: this.user_values.role
+        });
+      }
+    })
   }
 
   onChangeFields(changedValue: PoDynamicFormFieldChanged): PoDynamicFormValidation {
@@ -211,8 +269,6 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
 
     return changeFields;
   }
-
-  configureEditing() { }
 
   loadAddress(zip_code: string) {
     this.loading = true;

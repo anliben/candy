@@ -1,8 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { BaseComponente } from '../../../shared/components/base/base.component';
 import { PoDynamicFormField } from '@po-ui/ng-components';
 import { NgForm } from '@angular/forms';
+import { ProductsService } from '../../../services/produtos.service';
+import { Product } from '../../../shared/interfaces/products.interface';
 
 @Component({
   selector: 'app-products-handler',
@@ -11,8 +13,9 @@ import { NgForm } from '@angular/forms';
   styleUrl: './products-handler.component.css'
 })
 export class ProductsHandlerComponent extends BaseComponente {
+  productsService: ProductsService = inject(ProductsService);
   dynamicForm!: NgForm;
-  product_id: number | null = null;
+  product_id: number = 0;
   fields: PoDynamicFormField[] = [
     {
       property: 'title',
@@ -25,6 +28,13 @@ export class ProductsHandlerComponent extends BaseComponente {
       property: 'price',
       label: 'Price',
       type: 'currency',
+      required: true,
+      showRequired: true,
+      gridColumns: 4
+    },
+    {
+      property: 'description',
+      label: 'Description',
       required: true,
       showRequired: true,
       gridColumns: 4
@@ -45,6 +55,22 @@ export class ProductsHandlerComponent extends BaseComponente {
       gridColumns: 4,
       url: 'https://po-sample-api.onrender.com/v1/uploads/addFile'
     },
+    {
+      property: 'rate',
+      label: 'Rate',
+      type: 'number',
+      required: true,
+      showRequired: true,
+      gridColumns: 4
+    },
+    {
+      property: 'count',
+      label: 'Count',
+      type: 'number',
+      required: true,
+      showRequired: true,
+      gridColumns: 4
+    }
   ]
   product_values = {}
 
@@ -52,7 +78,6 @@ export class ProductsHandlerComponent extends BaseComponente {
     this.product_id = this.route.snapshot.params['id'];
     if (this.product_id) {
       this.loadUser();
-      this.configureEditing();
     }
   }
 
@@ -61,16 +86,62 @@ export class ProductsHandlerComponent extends BaseComponente {
   }
 
   save() {
-    console.log(this.dynamicForm.form.value)
+    const product = this.mapToUser(this.dynamicForm.form.value)
+    if (this.product_id) {
+      this.updateProduct(product);
+      return;
+    }
+
+    this.createProduct(product);
+  }
+
+  updateProduct(product: Product) {
+    this.productsService.productUpdate(this.product_id, product).subscribe({
+      next: () => {
+        this.router.navigate(['/products-list'])
+      },
+    })
+  }
+
+  createProduct(product: Product) {
+    this.productsService.productCreate(product).subscribe({
+      next: () => {
+        this.router.navigate(['/users-list'])
+      },
+    })
   }
 
   cancel() {
     this.router.navigate(['/users-list'])
   }
 
-  loadUser() {
-
+  mapToUser(data: any): Product {
+    return {
+      id: this.product_id,
+      title: data.title,
+      price: data.price,
+      description: data.description,
+      category: data.category,
+      image: data.image,
+      rating: {
+        rate: data.rate,
+        count: data.count
+      }
+    }
   }
 
-  configureEditing() { }
+  loadUser() {
+    this.productsService.productListOne(this.product_id).subscribe((product: any) => {
+      this.product_values = product;
+      this.dynamicForm.form.patchValue({
+        title: product.title,
+        price: product.price,
+        description: product.description,
+        category: product.category,
+        image: product.image,
+        rate: product.rating.rate,
+        count: product.rating.count,
+      });
+    })
+  }
 }

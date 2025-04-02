@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { BaseComponente } from '../../../shared/components/base/base.component';
 import { SharedModule } from '../../../shared/shared.module';
 import { PoPageAction, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
 import { Product } from '../../../shared/interfaces/products.interface';
 import { CartProduct } from '../../../shared/interfaces/cart-product.interface';
+import { ProductsService } from '../../../services/produtos.service';
 
 @Component({
   selector: 'app-products-list',
@@ -14,6 +15,7 @@ import { CartProduct } from '../../../shared/interfaces/cart-product.interface';
   styleUrl: './products-list.component.css'
 })
 export class ProductsListComponent extends BaseComponente implements OnInit {
+  productsService: ProductsService = inject(ProductsService);
   @Input('category') category: string | null = null;
   @Input('show-actions') showActions: boolean = true;
   @Input('items') items: Product[] | CartProduct[] = [];
@@ -65,31 +67,34 @@ export class ProductsListComponent extends BaseComponente implements OnInit {
   ]
 
   ngOnInit(): void {
-    if (this.items.length === 0) {
+    if (!this.items.length) {
       this.getProducts();
     }
   }
 
   getProducts() {
-    this.items = [
-      {
-        id: 1,
-        title: "Smartphone X",
-        price: 999.99,
-        description: "Um smartphone de última geração com câmera de alta resolução.",
-        category: "Eletrônicos",
-        image: "https://example.com/smartphone.jpg",
-        rating: {
-          rate: 4.5,
-          count: 120
-        }
-      }
-    ]
+    console.log('this.category: ', this.category)
+    if (this.category) {
+      this.productsService.productListCategory(this.category).subscribe((products) => {
+        this.items = products.data;
+      })
+      return;
+    }
+
+    this.productsService.productList().subscribe((products) => {
+      this.items = products.data;
+    })
   }
 
   selectProduct(product: CartProduct) {
     this.onSelected.emit(product);
   }
 
-  deleteUser(row: any) { }
+  deleteUser(row: any) {
+    this.productsService.deleteUser(row.id).subscribe({
+      next: () => {
+        this.items = this.items.filter((item) => item.id !== row.id);
+      },
+    })
+  }
 }
