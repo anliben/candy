@@ -45,6 +45,6 @@ export const appConfig: ApplicationConfig = {
       useClass: UnauthorizedInterceptor,
       multi: true
     },
-    { provide: LocationStrategy, useClass: HashLocationStrategy },
+    { provide: LocationStrategy, useClass: HashLocationStrategy }, provideAnimationsAsync(),
   ],
 };
