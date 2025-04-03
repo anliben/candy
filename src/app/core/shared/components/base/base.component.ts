@@ -15,6 +15,11 @@ export abstract class BaseComponente {
   public loading: boolean = false;
   public http: HttpClient = inject(HttpClient);
   public notification: PoNotificationService = inject(PoNotificationService);
+  public _order: string = '';
+  public _page: number = 1;
+  public _size: number = 10;
+  public _currentPage: number = 1;
+  public _totalItems: number = 0;
 
   public redirectTo(route: string, back_route: boolean = false): void {
     if (back_route) {

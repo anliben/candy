@@ -14,7 +14,7 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
           this.router.navigate(['/login']);
-          this.notification.error('Acesso expirado! faça login novamente para continuar.');
+          this.notification.error('Access denied. Please log in again.');
         }
         return throwError(error);
       })

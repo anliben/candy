@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { PoMenuItem } from '@po-ui/ng-components';
+import { Component, inject, OnInit } from '@angular/core';
+import { PoMenuItem, PoToolbarAction } from '@po-ui/ng-components';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -8,7 +9,11 @@ import { PoMenuItem } from '@po-ui/ng-components';
   standalone: false,
 })
 export class HomeComponent implements OnInit {
-  usuario_id: number = 0;
+  auth: AuthService = inject(AuthService);
+
+  profileActions: Array<PoToolbarAction> = [
+    { icon: 'an an-sign-out', label: 'Exit', type: 'danger', separator: true, action: () => this.logout() }
+  ];
 
   items: PoMenuItem[] = [
     {
@@ -37,6 +42,10 @@ export class HomeComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
+  }
+
+  logout() {
+    this.auth.logout();
   }
 
 }

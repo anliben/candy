@@ -53,7 +53,6 @@ export class ProductsHandlerComponent extends BaseComponente {
       required: true,
       showRequired: true,
       gridColumns: 4,
-      url: 'https://po-sample-api.onrender.com/v1/uploads/addFile'
     },
     {
       property: 'rate',
@@ -106,13 +105,13 @@ export class ProductsHandlerComponent extends BaseComponente {
   createProduct(product: Product) {
     this.productsService.productCreate(product).subscribe({
       next: () => {
-        this.router.navigate(['/users-list'])
+        this.router.navigate(['/products-list'])
       },
     })
   }
 
   cancel() {
-    this.router.navigate(['/users-list'])
+    this.router.navigate(['/products-list'])
   }
 
   mapToUser(data: any): Product {

@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 })
 export class AppService {
 
-  apiUrl = 'https://2aa1510e-ff40-4d8e-b0d7-8aae03f5812c.mock.pstmn.io';
+  apiUrl = 'https://8f752a83-0328-4261-a373-5a35decdd155.mock.pstmn.io';
 
   constructor() { }
 

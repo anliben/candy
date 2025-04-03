@@ -3,6 +3,7 @@ import { SharedModule } from '../../../shared/shared.module';
 import { BaseComponente } from '../../../shared/components/base/base.component';
 import { PoDynamicViewField, PoPageAction } from '@po-ui/ng-components';
 import { ProductsService } from '../../../services/produtos.service';
+import { Product } from '../../../shared/interfaces/products.interface';
 
 @Component({
   selector: 'app-products-info',
@@ -24,6 +25,8 @@ export class ProductsInfoComponent extends BaseComponente implements OnInit {
     {
       property: 'price',
       label: 'Price',
+      type: 'currency',
+      format: 'BRL'
     },
     {
       property: 'description',
@@ -34,14 +37,15 @@ export class ProductsInfoComponent extends BaseComponente implements OnInit {
       label: 'Category',
     },
     {
-      property: 'image',
-      label: 'Image',
-      type: 'image'
+      property: 'rating',
+      label: 'Rate',
     },
     {
-      property: 'rating.rate',
-      label: 'Rate',
-    }
+      property: 'image',
+      label: 'Image',
+      image: true,
+      divider: 'image'
+    },
   ]
 
   user_info = {};
@@ -55,8 +59,8 @@ export class ProductsInfoComponent extends BaseComponente implements OnInit {
 
   ngOnInit(): void {
     const product_id = this.route.snapshot.params['id'];
-    this.productsService.productListOne(product_id).subscribe((product: any) => {
-      this.user_info = product;
+    this.productsService.productListOne(product_id).subscribe((product: Product) => {
+      this.user_info = {...product, rating: product.rating.rate}
     })
   }
 }

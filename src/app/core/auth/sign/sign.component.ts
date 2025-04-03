@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { PoLanguage, PoModule, PoNotificationService } from '@po-ui/ng-components';
 import { AuthService } from '../auth.service';
@@ -35,13 +35,11 @@ export class SignComponent {
   onLoginSubmit(data: { username: string; password: string }) {
     this.loading = true;
     this.authService.login(data).subscribe({
-      next: response => {
-        localStorage.setItem('user', JSON.stringify(response));
-
+      next: () => {
         this.router.navigate(['/']);
-      }
+      },
+      complete: () => this.loading = false
     });
-    this.loading = false;
   }
 
 }

@@ -3,14 +3,13 @@ import { SharedModule } from '../../../shared/shared.module';
 import { PoDynamicViewField, PoPageAction } from '@po-ui/ng-components';
 import { BaseComponente } from '../../../shared/components/base/base.component';
 import { UsersService } from '../../../services/users.service';
+import { User } from '../../../shared/interfaces/users.interface';
 
 @Component({
   selector: 'app-users-info',
-  imports: [
-    SharedModule
-  ],
+  imports: [SharedModule],
   templateUrl: './users-info.component.html',
-  styleUrl: './users-info.component.css'
+  styleUrl: './users-info.component.css',
 })
 export class UsersInfoComponent extends BaseComponente implements OnInit {
   usersService: UsersService = inject(UsersService);
@@ -32,24 +31,24 @@ export class UsersInfoComponent extends BaseComponente implements OnInit {
       label: 'Password',
     },
     {
-      property: 'name.firstname',
+      property: 'full_name',
       label: 'Name',
     },
     {
-      property: 'address.city',
-      label: 'City'
+      property: 'city',
+      label: 'City',
     },
     {
-      property: 'address.street',
-      label: 'Street'
+      property: 'street',
+      label: 'Street',
     },
     {
-      property: 'address.number',
-      label: 'Number'
+      property: 'number',
+      label: 'Number',
     },
     {
-      property: 'address.zipcode',
-      label: 'Zipcode'
+      property: 'zipcode',
+      label: 'Zipcode',
     },
     {
       property: 'phone',
@@ -62,22 +61,31 @@ export class UsersInfoComponent extends BaseComponente implements OnInit {
     {
       property: 'role',
       label: 'Role',
-    }
-  ]
+    },
+  ];
 
   user_info = {};
 
   pageActions: PoPageAction[] = [
     {
       label: 'Voltar',
-      action: () => this.redirectTo('', true)
-    }
-  ]
+      action: () => this.redirectTo('', true),
+    },
+  ];
+  user_id: number = 0;
 
   ngOnInit(): void {
-    const id = this.route.snapshot.params['id']
-    this.usersService.userListOne(id).subscribe((user: any) => {
-      this.user_info = user;
-    })
+    this.user_id = this.route.snapshot.params['id'];
+    this.getUser();
+  }
+
+  getUser() {
+    this.usersService.userListOne(this.user_id).subscribe((user: User) => {
+      this.user_info = {
+        ...user,
+        ...user.address,
+        full_name: `${user.name.firstname} ${user.name.lastname}`,
+      };
+    });
   }
 }

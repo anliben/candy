@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
-import Utilitarios from '../shared/classes/utilitarios';
+import Utils from '../shared/utils/utils';
 
 @Injectable()
 export class TokenProviderInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = Utilitarios.ObterToken();
+    const token = Utils.GetToken();
 
     if (token) {
       let authReq = request;

@@ -11,11 +11,13 @@ import { ProductsCategoriesComponent } from '../products/products-categories/pro
 import { CartsListComponent } from '../carts/carts-list/carts-list.component';
 import { CartsHandlerComponent } from '../carts/carts-handler/carts-handler.component';
 import { CartsInfoComponent } from '../carts/carts-info/carts-info.component';
+import { AuthGuard } from '../../guards/guards.guard';
 
 const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
+    canActivate: [AuthGuard],
     children: [
       {
         path: '',

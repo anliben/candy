@@ -1,117 +1,124 @@
-import { Component, inject, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { SharedModule } from '../../../shared/shared.module';
-import { PoPageAction, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
+import {
+  PoPageAction,
+  PoTableAction,
+  PoTableColumn,
+} from '@po-ui/ng-components';
 import { User } from '../../../shared/interfaces/users.interface';
 import { Role } from '../../../shared/enum/role.enum';
 import { Status } from '../../../shared/enum/status.enum';
 import { BaseComponente } from '../../../shared/components/base/base.component';
 import { HttpClient } from '@angular/common/http';
 import { UsersService } from '../../../services/users.service';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import Utils from '../../../shared/utils/utils';
 
 @Component({
   selector: 'app-users-list',
   templateUrl: './users-list.component.html',
   styleUrls: ['./users-list.component.css'],
   standalone: true,
-  imports: [
-    SharedModule
-  ]
+  imports: [SharedModule],
 })
-export class UsersListComponent extends BaseComponente implements OnInit {
-  usersService: UsersService = inject(UsersService);
+export class UsersListComponent
+  extends BaseComponente
+  implements OnInit, AfterViewInit
+{
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  columns: PoTableColumn[] = [
-    {
-      property: 'id',
-      label: 'ID',
-    },
-    {
-      property: 'email',
-      label: 'Email',
-    },
-    {
-      property: 'username',
-      label: 'Username',
-    },
-    {
-      property: 'password',
-      label: 'Password',
-    },
-    {
-      property: 'name.firstname',
-      label: 'Name',
-    },
-    {
-      property: 'address.city',
-      label: 'City'
-    },
-    {
-      property: 'address.street',
-      label: 'Street'
-    },
-    {
-      property: 'address.number',
-      label: 'Number'
-    },
-    {
-      property: 'address.zipcode',
-      label: 'Zipcode'
-    },
-    {
-      property: 'phone',
-      label: 'Phone',
-    },
-    {
-      property: 'status',
-      label: 'Status',
-    },
-    {
-      property: 'role',
-      label: 'Role',
-    }
-  ]
+  usersService: UsersService = inject(UsersService);
+  displayedColumns: string[] = [
+    'id',
+    'email',
+    'username',
+    'password',
+    'full_name',
+    'phone',
+    'status',
+    'role',
+    'actions',
+  ];
 
   items: User[] = [];
 
-  actions: PoTableAction[] = [
-    {
-      label: 'Info',
-      action: (row: any) => this.redirectTo(`user-info/${row.id}`)
-    },
-    {
-      label: 'Edit',
-      action: (row: any) => this.redirectTo(`user-edit/${row.id}`)
-    },
-    {
-      label: 'Delete',
-      action: this.deleteUser.bind(this)
-    }
-  ]
+  dataSource: MatTableDataSource<User> = new MatTableDataSource<User>(
+    undefined
+  );
 
   pageActions: PoPageAction[] = [
     {
       label: 'Create',
-      action: () => this.redirectTo('/user-create')
-    }
-  ]
+      action: () => this.redirectTo('/user-create'),
+    },
+  ];
 
   ngOnInit() {
-    this.loadUsers();
+    this._order = 'username asc, email desc';
+    this.getUsers();
   }
 
-  loadUsers() {
-    this.usersService.userList().subscribe({
-      next: (users: any) => {
-        this.items = users.data;
-      }
-    })
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
   }
 
-  deleteUser(row: any) {
+  getUsers() {
+    this.usersService
+      .userList({
+        _page: this._currentPage,
+        _size: this._size,
+        _order: this._order,
+      })
+      .subscribe({
+        next: (users: any) => {
+          this._page = users.totalPages;
+          this._totalItems = users.totalItems;
+          this.dataSource.data = users.data;
+        },
+      });
+  }
+
+  edit(row: any) {
+    this.redirectTo(`user-edit/${row.id}`);
+  }
+
+  view(row: any) {
+    this.redirectTo(`user-info/${row.id}`);
+  }
+
+  delete(row: any) {
     this.usersService.deleteUser(row.id).subscribe({
       next: () => {
-        this.items = this.items.filter(user => user.id !== row.id);
-      }
-    })
+        this.dataSource.data = this.dataSource.data.filter(
+          (item) => item.id !== row.id
+        );
+      },
+    });
+  }
+
+  sort(event: { active: string; direction: string }) {
+    this._order = Utils.Sort(event, this._order);
+    this.getUsers();
+  }
+
+  onPageChange(event: PageEvent) {
+    if (
+      this._currentPage === event.pageIndex + 1 &&
+      this._size === event.pageSize
+    ) {
+      return;
+    }
+
+    this._currentPage = event.pageIndex + 1;
+    this._size = event.pageSize;
+
+    this.getUsers();
   }
 }

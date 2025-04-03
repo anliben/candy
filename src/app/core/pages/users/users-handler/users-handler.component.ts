@@ -5,7 +5,7 @@ import { NgForm } from '@angular/forms';
 import { Status } from '../../../shared/enum/status.enum';
 import { Role } from '../../../shared/enum/role.enum';
 import { User } from '../../../shared/interfaces/users.interface';
-import { PoDynamicFormFieldChanged, PoDynamicFormValidation } from '@po-ui/ng-components';
+import { PoDynamicFormField, PoDynamicFormFieldChanged, PoDynamicFormValidation } from '@po-ui/ng-components';
 import Utils from '../../../shared/utils/utils';
 import { UsersService } from '../../../services/users.service';
 
@@ -22,7 +22,7 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
   usersService: UsersService = inject(UsersService);
   dynamicForm!: NgForm;
   user_id: number = 0;
-  fields = [
+  fields: PoDynamicFormField[] = [
     {
       property: 'email',
       label: 'Email',
@@ -45,10 +45,11 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
       required: true,
       gridColumns: 4,
       showRequired: true,
-      type: 'password'
+      type: 'password',
+      secret: true
     },
     {
-      property: 'first_name',
+      property: 'firstname',
       label: 'First Name',
       required: true,
       gridColumns: 4,
@@ -56,7 +57,7 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
       type: 'text'
     },
     {
-      property: 'last_name',
+      property: 'lastname',
       label: 'Last Name',
       required: true,
       gridColumns: 4,
@@ -78,6 +79,7 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
       gridColumns: 4,
       showRequired: true,
       type: 'number',
+      noAutocomplete: true,
       mask: '99999-999'
     },
     {
@@ -106,36 +108,38 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
     },
     {
       property: 'lat',
-      label: 'Lat',
+      label: 'Latitude',
       required: true,
       gridColumns: 4,
       showRequired: true,
       type: 'text',
-      visible: false
     },
     {
       property: 'long',
-      label: 'long',
+      label: 'Longitude',
       required: true,
       gridColumns: 4,
       showRequired: true,
       type: 'text',
-      visible: false
     },
     {
       property: 'status',
       label: 'Status',
       required: true,
-      gridColumns: 4,
+      gridColumns: 6,
       showRequired: true,
       options: [
         {
-          value: 'active',
+          value: 'Active',
           label: 'Active'
         },
         {
-          value: 'inactive',
+          value: 'Inactive',
           label: 'Inactive'
+        },
+        {
+          value: 'Suspended',
+          label: 'Suspended'
         }
       ]
     },
@@ -143,19 +147,19 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
       property: 'role',
       label: 'Role',
       required: true,
-      gridColumns: 4,
+      gridColumns: 6,
       showRequired: true,
       options: [
         {
-          value: 'admin',
+          value: 'Admin',
           label: 'Admin'
         },
         {
-          value: 'customer',
+          value: 'Customer',
           label: 'Customer'
         },
         {
-          value: 'manager',
+          value: 'Manager',
           label: 'Manager'
         },
       ]
@@ -190,7 +194,7 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
     this.user_id = this.route.snapshot.params['id'];
 
     if (this.user_id) {
-      this.loadUser();
+      this.getUser();
     }
   }
 
@@ -199,6 +203,12 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
   }
 
   save() {
+    if (!this.dynamicForm.form.valid) {
+      this.notification.warning('Fill all fields required');
+      this.dynamicForm.form.markAllAsTouched();
+      return;
+    }
+
     const user = this.mapToUser(this.dynamicForm.form.value)
 
     if (this.user_id) {
@@ -229,25 +239,25 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
     this.router.navigate(['/users-list'])
   }
 
-  loadUser() {
+  getUser() {
     this.usersService.userListOne(this.user_id).subscribe({
-      next: (user: any) => {
-        this.user_values = user.data;
+      next: (user: User) => {
         this.dynamicForm.form.patchValue({
-          email: this.user_values.email,
-          username: this.user_values.username,
-          first_name: this.user_values.name.firstname,
-          last_name: this.user_values.name.lastname,
-          phone: this.user_values.phone,
-          zipcode: this.user_values.address.zipcode,
-          street: this.user_values.address.street,
-          number: this.user_values.address.number,
-          city: this.user_values.address.city,
-          lat: this.user_values.address.geolocation.lat,
-          long: this.user_values.address.geolocation.long,
-          status: this.user_values.status,
-          role: this.user_values.role
-        });
+          email: user.email,
+          username: user.username,
+          password: user.password,
+          firstname: user.name.firstname,
+          lastname: user.name.lastname,
+          phone: user.phone,
+          zipcode: user.address.zipcode,
+          street: user.address.street,
+          number: user.address.number,
+          city: user.address.city,
+          lat: user.address.geolocation.lat,
+          long: user.address.geolocation.long,
+          status: user.status,
+          role: user.role
+        }, { emitEvent: false });
       }
     })
   }
@@ -272,7 +282,7 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
 
   loadAddress(zip_code: string) {
     this.loading = true;
-    this.http.get(`https://brasilapi.com.br/api/cep/v1/${zip_code}`).subscribe(
+    this.http.get(`https://brasilapi.com.br/api/cep/v2/${zip_code}`).subscribe(
       (res: any) => {
         this.dynamicForm.form.patchValue({
           city: res.city,
@@ -290,14 +300,15 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
   }
 
   mapToUser(data: any): User {
+    console.log(data)
     return {
       id: 0,
       email: data.email || "",
       username: data.username || "",
       password: data.password || "",
       name: {
-        firstname: data.first_name || "",
-        lastname: data.last_name || ""
+        firstname: data.firstname || "",
+        lastname: data.lastname || ""
       },
       address: {
         city: data.city || "",
@@ -305,8 +316,8 @@ export class UsersHandlerComponent extends BaseComponente implements OnInit {
         number: data.number || 0,
         zipcode: data.zipcode || "",
         geolocation: {
-          lat: "",
-          long: ""
+          lat: data.lat || "",
+          long: data.long || ""
         }
       },
       phone: data.phone || "",

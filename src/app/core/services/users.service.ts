@@ -4,6 +4,7 @@ import { AppService } from '../../app.service';
 import { Observable, take } from 'rxjs';
 import { User } from '../shared/interfaces/users.interface';
 import { Pagination } from '../shared/interfaces/pagination.interface';
+import { GetAllQuery } from '../shared/interfaces/query.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -17,8 +18,14 @@ export class UsersService {
     return this.http.post<User>(`${this.endpoint}/users`, user);
   }
 
-  userList(): Observable<Pagination<User>> {
-    return this.http.get<Pagination<User>>(`${this.endpoint}/users`).pipe(take(1));
+  userList(query: GetAllQuery): Observable<Pagination<User>> {
+    return this.http.get<Pagination<User>>(`${this.endpoint}/users`, {
+      params: {
+        _page: query._page,
+        _size: query._size,
+        _order: query._order
+      }
+    }).pipe(take(1));
   }
 
   userUpdate(id: number, user: User): Observable<User> {

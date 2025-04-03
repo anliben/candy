@@ -7,5 +7,9 @@
     [p-value]="values"
   ></po-dynamic-view>
 
-  <app-products-list [items]="values.products" [show-actions]="false" ></app-products-list>
+  <po-table
+    [p-columns]="columns_products"
+    [p-items]="values.products"
+  ></po-table>
+
 </po-page-default>
